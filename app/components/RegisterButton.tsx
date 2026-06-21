@@ -22,6 +22,7 @@ export default function RegisterButton({
       order_id: orderId,
       handler: async function (response: any) {
         // 3. Payment Success - Now save the booking to your DB!
+        // @ts-ignore
         await bookEventAction(eventId);
         alert("Payment successful! You are registered.");
       },
