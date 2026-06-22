@@ -121,10 +121,55 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
+}
+
+@media print {
+
+  /* Hide the root app tree, background layouts, navbars, and sidebar panels completely */
+  body>*:not(#eventsphere-print-payload) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Force our target print document container to be visible and occupy the full canvas space */
+  #eventsphere-print-payload,
+  #eventsphere-print-payload * {
+    visibility: visible !important;
+    display: block !important;
+  }
+
+  /* Standardize the print page boundaries to prevent blank page generation */
+  #eventsphere-print-payload {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  /* Optimize text graphics rendering for physical printers */
+  body {
+    background-color: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Clear margins on default browser print configurations */
+@page {
+  margin: 15mm;
 }

@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import { Inter, Geist } from "next/font/google";
-import "./globals.css";
+import type { Metadata, Viewport } from "next";
+import { Geist } from "next/font/google";
+import Script from "next/script";
 import WelcomeModal from "./components/WelcomeModal";
 import { cn } from "@/lib/utils";
+import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "EventSphere | Discover Events That Matter",
@@ -15,10 +15,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Sayyed Misna" }],
 };
 
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-};
+export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
 export default function RootLayout({
   children,
@@ -28,17 +25,24 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("scroll-smooth", "font-sans", geist.variable)}
+      className={cn("scroll-smooth antialiased", geist.variable)}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
     >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="lazyOnload"
+        />
       </head>
+      {/* 
+        Harden the body tag against browser extension DOM injections (e.g., ColorZilla's cz-shortcut-listen)
+        This instantly eliminates the console hydration mismatch warning.
+      */}
       <body
-        className={`${inter.className} bg-[#0a0a0f] text-white antialiased`}
-        suppressHydrationWarning={true}
+        className="min-h-screen bg-[#040407] font-sans text-white antialiased"
+        suppressHydrationWarning
       >
-        <header className="flex justify-end items-center p-4 gap-4 h-16"></header>
         <WelcomeModal />
         <main className="flex min-h-screen flex-col">{children}</main>
       </body>

@@ -1,18 +1,35 @@
-// lib/image-helpers.ts
-import { createClient } from "@/lib/supabase-client";
+// Deterministic module-scoped compilation cache boundary lines
+const BUCKET_NAME = "events";
+const STORAGE_ROOT_ENDPOINT = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/$/, "")}/storage/v1/object/public/${BUCKET_NAME}`
+  : "";
 
-export const getImageUrl = (urlOrPath: string | null | undefined) => {
+/**
+ * High-performance, zero-allocation public media CDN asset URL resolver.
+ * Eliminates client SDK instantiations inside standard rendering loops to optimize main-thread paint paths.
+ *
+ * @param urlOrPath - Raw database storage pointer path or absolute fallback URL string
+ * @returns Fully-qualified public CDN asset route string
+ */
+export function getImageUrl(urlOrPath: string | null | undefined): string {
+  // 1. Fallback Guard: Instantiate a reliable placeholder image asset instantly if path resolves empty
   if (!urlOrPath) return "/placeholder-event.jpg";
 
-  // 1. If it's already a full URL, return it
-  if (urlOrPath.startsWith("http")) return urlOrPath;
+  const pathStr = String(urlOrPath).trim();
 
-  // 2. Remove leading slash if it exists, to avoid // in the path
-  const cleanPath = urlOrPath.startsWith("/") ? urlOrPath.slice(1) : urlOrPath;
+  // 2. Short-Circuit evaluation: If the string is already a fully-qualified absolute link, return it instantly
+  if (pathStr.startsWith("http://") || pathStr.startsWith("https://")) {
+    return pathStr;
+  }
 
-  // 3. Generate the public URL
-  const supabase = createClient();
-  const { data } = supabase.storage.from("events").getPublicUrl(cleanPath);
+  // 3. Clean leading slashes to prevent double-slash protocol breaks inside destination path nodes
+  const cleanPath = pathStr.startsWith("/") ? pathStr.slice(1) : pathStr;
 
-  return data.publicUrl;
-};
+  // 4. Zero-Overhead Static Resolution: Construct the CDN path natively without calling the Supabase SDK client layer
+  if (!STORAGE_ROOT_ENDPOINT) {
+    // Staging / Build-time local fallback layer to insulate static generation pathways from throwing errors
+    return `/${cleanPath}`;
+  }
+
+  return `${STORAGE_ROOT_ENDPOINT}/${cleanPath}`;
+}

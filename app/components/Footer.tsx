@@ -1,119 +1,123 @@
-import React from "react";
 import Link from "next/link";
 
+const PLATFORM_LINKS = [
+  { href: "/events", label: "Browse Events" },
+  { href: "/sign-up", label: "Create Account" },
+  { href: "/organizer/create", label: "Host an Event" },
+] as const;
+
+const CATEGORIES = [
+  "Music",
+  "Tech",
+  "Sports",
+  "Food",
+  "Arts",
+  "Business",
+] as const;
+
+const SOCIAL_LINKS = [
+  { href: "https://github.com/sayyedmisna/event-sphere", label: "Source Code" },
+  { href: "https://www.linkedin.com/in/misnasayyed/", label: "LinkedIn" },
+  { href: "https://github.com/sayyedmisna/", label: "GitHub" },
+] as const;
+
 export default function Footer() {
-  // Category array for easy maintenance
-  const categories = ["Music", "Tech", "Sports", "Food", "Arts", "Business"];
-
   return (
-    <footer className="bg-[#0a0a0f] border-t border-white/5 pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
-        {/* Brand Column */}
-        <div className="md:col-span-2">
-          <h2 className="text-xl font-bold mb-4">EventSphere</h2>
-          <p className="text-gray-400 max-w-sm">
-            The ultimate platform to discover, create, and book amazing events
-            near you.
+    <footer
+      className="w-full border-t border-zinc-900 bg-[#040407] pt-12 pb-6 tracking-tight select-none"
+      aria-label="Global Site Sitemap"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-10">
+        {/* Author Authority Content Block */}
+        <div className="md:col-span-2 space-y-3">
+          <h2 className="text-lg font-bold text-white tracking-tight">
+            EventSphere
+          </h2>
+          <p className="text-xs leading-relaxed text-zinc-400 max-w-xs sm:text-sm">
+            The premier platform to discover, design, and book elite tickets for
+            local concerts, workshops, and sports spectacles near you.
           </p>
+          <div className="text-[11px] leading-relaxed text-zinc-500 max-w-sm pt-2">
+            Engineered by{" "}
+            <a
+              href="https://www.linkedin.com/in/misnasayyed/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-zinc-400 hover:text-indigo-400 transition-colors underline outline-none"
+            >
+              Sayyed Misna
+            </a>
+            , S.Y. B.Sc. Computer Science scholar at Ismail Yusuf College.
+          </div>
         </div>
 
-        {/* Platform Column */}
-        <div>
-          <h3 className="font-semibold mb-4">Platform</h3>
-          <ul className="space-y-3 text-gray-400 text-sm">
-            <li>
-              <Link
-                href="/events"
-                className="hover:text-white transition-colors"
-              >
-                Browse Events
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/sign-up"
-                className="hover:text-white transition-colors"
-              >
-                Create Account
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/organizer/create"
-                className="hover:text-white transition-colors"
-              >
-                Host an Event
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Categories Column */}
-        <div>
-          <h3 className="font-semibold mb-4">Categories</h3>
-          <ul className="space-y-3 text-gray-400 text-sm">
-            {categories.map((category) => (
-              <li key={category}>
+        {/* Semantic Action Navigation Track */}
+        <nav className="space-y-4" aria-label="Platform Essentials">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+            Platform
+          </h3>
+          <ul className="space-y-2.5 text-xs font-medium">
+            {PLATFORM_LINKS.map((link) => (
+              <li key={link.href}>
                 <Link
-                  href={`/events?category=${category.toLowerCase()}`}
-                  className="hover:text-white transition-colors"
+                  href={link.href}
+                  className="text-zinc-400 transition-colors duration-150 hover:text-white outline-none focus-visible:text-indigo-400"
                 >
-                  {category}
+                  {link.label}
                 </Link>
               </li>
             ))}
           </ul>
-        </div>
+        </nav>
+
+        {/* Semantic Category Discovery Track */}
+        <nav className="space-y-4" aria-label="Event Categories">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+            Categories
+          </h3>
+          <ul className="space-y-2.5 text-xs font-medium">
+            {CATEGORIES.map((cat) => (
+              <li key={cat}>
+                <Link
+                  href={`/events?category=${cat.toLowerCase()}`}
+                  className="text-zinc-400 transition-colors duration-150 hover:text-white outline-none focus-visible:text-indigo-400"
+                >
+                  {cat}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
-      {/* Copyright */}
-      <div className="max-w-7xl mx-auto px-8 mt-16 pt-8 border-t border-white/5 text-center text-sm text-gray-500">
-        © 2026 EventSphere. All rights reserved.
-        <div className="text-xs mt-4 space-y-2">
-          <div>
-            This is the project of{" "}
-            <b>
+      {/* Copyright & Core Repository Tracking Layer */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-12 pt-6 border-t border-zinc-900/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-medium text-zinc-500">
+        <span>
+          &copy; {new Date().getFullYear()} EventSphere. All rights reserved.
+        </span>
+
+        <nav
+          className="flex items-center gap-4 text-zinc-400"
+          aria-label="Developer Profiles"
+        >
+          {SOCIAL_LINKS.map((link, i) => (
+            <span key={link.label} className="flex items-center gap-4">
+              {i > 0 && (
+                <span className="text-zinc-800" aria-hidden="true">
+                  |
+                </span>
+              )}
               <a
-                href="https://linkedin.com"
+                href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline hover:text-white transition-colors"
+                className="hover:text-white transition-colors duration-150 outline-none focus-visible:text-indigo-400"
               >
-                Sayyed Misna
+                {link.label}
               </a>
-            </b>
-            . Studying in S.Y. B.Sc. C.S(Computer Science) from Ismail Yusuf
-            College.
-          </div>
-          <div className="text-gray-400 space-x-2">
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              View Source Code
-            </a>
-            <span>|</span>
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              LinkedIn
-            </a>
-            <span>|</span>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              GitHub
-            </a>
-          </div>
-        </div>
+            </span>
+          ))}
+        </nav>
       </div>
     </footer>
   );

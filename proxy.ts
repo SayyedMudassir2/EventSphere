@@ -1,20 +1,21 @@
+// proxy.ts
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-type UserRole = "admin" | "organizer" | "attendee" | string;
+type UserRole = "admin" | "organizer" | "attendee";
 
 // Helper to determine accurate destination paths based on registration profile data
 function getDashboardPath(role: UserRole): string {
-  // ✅ ROUTE GROUP FIX: Parenthesis folders like (dashboard) do not appear in the URL path.
-  if (role === "admin") return "/organizer"; // points to app/(dashboard)/organizer/page.tsx
-  if (role === "organizer") return "/organizer"; // points to app/(dashboard)/organizer/page.tsx
-  return "/"; // The attendee dashboard is the root homepage (app/(dashboard)/page.tsx)
+  if (role === "admin") return "/admin";
+  if (role === "organizer") return "/organizer";
+  return "/attendee";
 }
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: { headers: request.headers },
   });
+  const path = request.nextUrl.pathname;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,8 +37,8 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role as UserRole;
 
-  // 1. Define Route Sets (Removed "/dashboard" since it doesn't exist in your URLs)
   const protectedRoutes = ["/organizer", "/attendee", "/admin"];
   const guestRoutes = ["/sign-in", "/sign-up"];
 
@@ -49,15 +50,23 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route),
   );
 
-  // 2. Redirect logged-in users away from Auth pages (e.g. sign-in/sign-up)
-  if (user && isGuestRoute) {
-    const role = user.user_metadata?.role as UserRole;
+  // Redirect guests away from Protected pages
+  if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL(getDashboardPath(role), request.url));
   }
 
-  // 3. Redirect guests away from Protected pages
-  if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+  // Redirect logged-in users away from Auth pages (e.g. sign-in/sign-up)
+  if (user && isGuestRoute) {
+    return NextResponse.redirect(new URL(getDashboardPath(role), request.url));
+  }
+
+  // Strict RBAC (Role Based Access Control) - Admin bypassed entirely
+  if (user && role !== "admin") {
+    if (path.startsWith("/organizer") && role !== "organizer") {
+      return NextResponse.redirect(
+        new URL(`/unauthorized?role=${role}`, request.url),
+      );
+    }
   }
 
   return response;

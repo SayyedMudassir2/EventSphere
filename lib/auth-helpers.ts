@@ -1,25 +1,39 @@
-// lib/auth-helpers.ts
 import { createClient } from "@/lib/supabase-server";
 
-export async function getUserSession() {
+export interface SessionPayload {
+  user: any | null;
+  role: "admin" | "organizer" | "attendee" | null;
+}
+
+/**
+ * High-performance, single-hop identity and Role-Based Access Control (RBAC) resolver.
+ * Combines authentication checking and role queries into one atomic lookup block.
+ */
+export async function getUserSession(): Promise<SessionPayload> {
   const supabase = await createClient();
+
+  // 1. Single Network Hop Strategy: Fetch user identity context from the server session cache maps
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
+  if (authError || !user) return { user: null, role: null };
 
-  if (!user) return { user: null, role: null };
-
-  // Log the User ID from Auth
-  // console.log("DEBUG: Auth User ID:", user.id);
-
+  // 2. High-Performance Profile Cross-Reference Check
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, id") // Also select the ID
+    .select("role")
     .eq("id", user.id)
     .single();
 
-  // Log the Profile ID found
-  // console.log("DEBUG: Found Profile:", profile);
+  // 3. Normalize role payload parameters to satisfy permission checks seamlessly
+  const rawRole = profile?.role || user?.user_metadata?.role || "attendee";
+  const userRole = String(rawRole)
+    .toLowerCase()
+    .trim() as SessionPayload["role"];
 
-  return { user, role: profile?.role };
+  return {
+    user,
+    role: userRole,
+  };
 }

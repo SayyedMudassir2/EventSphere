@@ -1,98 +1,95 @@
-import React from "react";
-import UserMenu from "@/app/components/UserMenu";
 import Link from "next/link";
 import { getUserSession } from "@/lib/auth-helpers";
+import UserMenu from "@/app/components/UserMenu";
 import NavbarWrapper from "@/app/components/NavbarWrapper";
+import { cn } from "@/lib/utils";
+
+const NAV_LINKS = [
+  { href: "/", label: "Home", access: "public" },
+  { href: "/events", label: "Events", access: "public" },
+  { href: "/organizer", label: "Organizer Panel", access: "organizer" },
+  { href: "/admin", label: "Admin Panel", access: "admin" },
+] as const;
 
 export default async function Navbar() {
-  const { user, role } = await getUserSession();
+  const session = await getUserSession();
+  const user = session?.user ?? null;
+  const userRole = String(session?.role || "")
+    .toLowerCase()
+    .trim();
 
   return (
     <NavbarWrapper>
-      <nav className="w-full bg-[#0a0a0f]/80 backdrop-blur-md border-b border-white/5">
-        <div className="flex items-center justify-between py-6 px-8 max-w-7xl mx-auto">
-          {/* Logo Section */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-indigo-600 p-1.5 rounded-lg group-hover:bg-indigo-500 transition-colors">
+      <nav className="fixed inset-x-0 top-0 z-50 border-b border-zinc-900 bg-[#040407]/80 backdrop-blur-md select-none will-change-transform">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
+          {/* Brand Identity Vector Block */}
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 group outline-none"
+            aria-label="EventSphere Home"
+          >
+            <div className="rounded-lg bg-indigo-600 p-2 transition-colors duration-150 group-hover:bg-indigo-500 group-focus-visible:ring-2 group-focus-visible:ring-indigo-500">
               <svg
-                className="w-5 h-5 text-white"
+                className="h-4 w-4 text-white stroke-[2.2]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <rect
-                  x="3"
-                  y="4"
-                  width="18"
-                  height="18"
-                  rx="2"
-                  strokeWidth="2"
-                />
-                <line x1="3" y1="10" x2="21" y2="10" strokeWidth="2" />
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
             </div>
-            <span className="text-xl font-semibold tracking-tight text-white">
+            <span className="text-base font-bold tracking-tight text-white transition-opacity group-hover:opacity-90">
               EventSphere
             </span>
           </Link>
 
-          {/* Center Navigation Links */}
-          <div className="flex gap-8 text-sm font-medium items-center">
-            <Link
-              href="/"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              Home
-            </Link>
+          {/* Core Layout Strategy Links */}
+          <div className="hidden items-center gap-8 text-xs font-semibold tracking-wide uppercase md:flex">
+            {NAV_LINKS.map((link) => {
+              if (
+                link.access !== "public" &&
+                (!user || userRole !== link.access)
+              )
+                return null;
 
-            <Link
-              href="/events"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              Events
-            </Link>
-
-            {/* Dynamic Role-Based Panel Rendering */}
-            {user && role === "organizer" && (
-              <Link
-                href="/dashboard/organizer"
-                className="text-blue-400 hover:text-blue-300 font-bold transition-colors"
-              >
-                Organizer Panel
-              </Link>
-            )}
-
-            {user && role === "admin" && (
-              <Link
-                href="/admin"
-                className="text-red-400 hover:text-red-300 font-bold transition-colors"
-              >
-                Admin Panel
-              </Link>
-            )}
+              const isDashboard =
+                link.access === "admin" || link.access === "organizer";
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "transition-colors duration-150 outline-none focus-visible:text-indigo-400",
+                    isDashboard
+                      ? "text-indigo-400 hover:text-indigo-300 font-bold"
+                      : "text-zinc-400 hover:text-white",
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
 
-          {/* Auth Section */}
-          <div className="flex items-center gap-6">
+          {/* Intent Capture Conversion CTA Flow */}
+          <div className="flex items-center gap-4 text-xs font-semibold">
             {!user ? (
-              /* Signed Out Links */
               <>
                 <Link
                   href="/sign-in"
-                  className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                  className="text-zinc-400 hover:text-white transition-colors duration-150 outline-none focus-visible:text-indigo-400"
                 >
                   Sign In
                 </Link>
-
                 <Link
                   href="/sign-up"
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-6 py-2.5 rounded-full transition-all shadow-lg shadow-indigo-900/20"
+                  className="rounded-full bg-indigo-600 px-5 py-2.5 text-white shadow-md shadow-indigo-600/10 transition-all duration-150 hover:bg-indigo-500 active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 >
-                  Get Started for free
+                  Get Started Free
                 </Link>
               </>
             ) : (
-              /* Signed In Profile Only */
               <UserMenu user={user} />
             )}
           </div>

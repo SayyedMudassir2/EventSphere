@@ -1,5 +1,6 @@
 // app/actions/auth.ts
 "use server";
+
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { getDashboardPath, UserRole } from "@/lib/auth-utils";
@@ -40,4 +41,32 @@ export async function signOutAction() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/sign-in");
+}
+
+/**
+ * Syncs the browser session cookie with the database profile data.
+ * Overwrites cookie data to resolve edge middleware redirect loops instantly.
+ */
+export async function refreshUserSessionCookie() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user?.id) {
+    // 1. Fetch your source-of-truth profile role directly from the database table
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role) {
+      // 2. Force rewrite the metadata directly inside the encrypted auth cookie session
+      // This synchronizes your edge middleware instantly, clearing out redirect loops
+      await supabase.auth.updateUser({
+        data: { role: profile.role },
+      });
+    }
+  }
 }
