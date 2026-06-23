@@ -173,3 +173,8 @@
 @page {
   margin: 15mm;
 }
+
+#nprogress .bar {
+  background: #6366f1 !important;
+  height: 2px !important;
+}
