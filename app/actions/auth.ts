@@ -43,10 +43,6 @@ export async function signOutAction() {
   redirect("/sign-in");
 }
 
-/**
- * Syncs the browser session cookie with the database profile data.
- * Overwrites cookie data to resolve edge middleware redirect loops instantly.
- */
 export async function refreshUserSessionCookie() {
   const supabase = await createClient();
   const {
@@ -69,4 +65,18 @@ export async function refreshUserSessionCookie() {
       });
     }
   }
+}
+
+export async function requestPasswordReset(email: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/update-password`,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return { success: true };
 }
